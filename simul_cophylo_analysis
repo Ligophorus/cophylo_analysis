@@ -1,0 +1,43 @@
+#Demostration of sim4 bind trees. H and Parasites share a common topology (com.tree)
+#with 1 to 1 H-P links. Other portion of the tree is different between H and P with random
+#H-P links. 
+library(ape)
+com.tree <- rcoal(n=6) # this is the common topology - ultrametric
+H.tree <- rcoal(n=4, tip.label=LETTERS[1:4])   # H different topology
+P.tree <- rcoal(n=4, tip.label=letters[1:4]) # P different topology
+#
+# Funtion that binds common and different parts and renders an ultrametric tree
+superglue <- function (com.tree, H.tree, P.tree){
+#re-scale H and P trees to get ultrametric trees at the end of the process
+H.tree$edge.length <- H.tree$edge.length*vcv(com.tree)[1,1]/vcv(H.tree)[1,1]
+P.tree$edge.length <- P.tree$edge.length*vcv(com.tree)[1,1]/vcv(P.tree)[1,1]
+# add a common root lenght to the trees:
+com.tree$root.edge <- H.tree$root.edge <- P.tree$root.edge <- runif(1)
+#bind trees:
+H.tree <- com.tree + H.tree
+P.tree <- com.tree + P.tree
+return (list(H.tree,P.tree))
+}
+#
+# HPgamma creates HP matrix with coevl links in common part of tree and
+# random links RESTRICTED TO random part of the tree
+HPgamma <- function (NH, NP, Nrand) { # input # rows and # random links
+  HP <- diag(1, NH, NP) #diagonal 1 matrix of NH rows and NP cols
+  HP2 <- diag(1, Nrand)
+  #The following randomizes the links of the non-coevolving part of the tree:
+  i <- sapply(seq_len(Nrand), function(x) sample(seq_len(Nrand)[-x], 1))
+  HP2 <- matrix(0, Nrand, Nrand)
+  HP2[cbind(seq_len(Nrand), i)] <- 1
+  HP3 <- which(HP2 ==1, arr.in=TRUE) #get coordinates of random links   
+  HP[HP3] <- 1
+  for (i in 1:Nrand) HP[i,i] <-0
+  return(HP)
+}
+#
+Trees <- superglue(com.tree,H.tree,P.tree)
+HP <- HPgamma(10,10,4)
+rownames(HP)<- rev(Trees[[1]]$tip.label)
+colnames(HP)<- rev(Trees[[2]]$tip.label)
+HP.LUT <- which(HP ==1, arr.in=TRUE)
+links <- cbind(rownames(HP)[HP.LUT[,1]],colnames(HP)[HP.LUT[,2]])
+cophyloplot(Trees[[1]], Trees[[2]], assoc=links, use.edge.length=TRUE, gap=0.5, space=8)
