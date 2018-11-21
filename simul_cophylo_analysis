@@ -1,12 +1,12 @@
-#Demostration of sim4 bind trees. H and Parasites share a common topology (com.tree)
-#with 1 to 1 H-P links. Other portion of the tree is different between H and P with random
-#H-P links. 
+#Demostration of sim4 bind trees. Part of the Hosts and Parasites phylos is shared(com.tree)
+#involving 1-to-1 H-P assoc. The other portion of the H&P trees is different with random
+#H-P assoc. 
 library(ape)
 com.tree <- rcoal(n=6) # this is the common topology - ultrametric
 H.tree <- rcoal(n=4, tip.label=LETTERS[1:4])   # H different topology
 P.tree <- rcoal(n=4, tip.label=letters[1:4]) # P different topology
 #
-# Funtion that binds common and different parts and renders an ultrametric tree
+# Funtion superglue binds common and different parts and renders an ultrametric tree
 superglue <- function (com.tree, H.tree, P.tree){
 #re-scale H and P trees to get ultrametric trees at the end of the process
 H.tree$edge.length <- H.tree$edge.length*vcv(com.tree)[1,1]/vcv(H.tree)[1,1]
@@ -19,8 +19,8 @@ P.tree <- com.tree + P.tree
 return (list(H.tree,P.tree))
 }
 #
-# HPgamma creates HP matrix with coevl links in common part of tree and
-# random links RESTRICTED TO random part of the tree
+# HPgamma creates HP matrix with coevl assocs (1-to-1) in common part of trees and
+# random links in random part of the trees
 HPgamma <- function (NH, NP, Nrand) { # input # rows and # random links
   HP <- diag(1, NH, NP) #diagonal 1 matrix of NH rows and NP cols
   HP2 <- diag(1, Nrand)
